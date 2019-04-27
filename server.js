@@ -4,20 +4,17 @@
 require('dotenv').config();
 
 const express = require('express');
-const app = express();
 const superagent = require('superagent');
 const cors = require('cors');
 
+const app = express();
 app.use(cors());
-
 const PORT = process.env.PORT;
 
 //API routes
 
 app.get('/location', searchToLatLong);
-
 app.get('/weather', getWeather);
-
 app.get('/events', getEvents);
 
 app.listen(PORT, () => console.log(`Listening on PORT ${PORT}`));
