@@ -59,9 +59,24 @@ function searchWeather(query) {
   const weatherSummary = [];
   weatherData.daily.data.forEach(day => {
     weatherSummary.push(new Weather(day));
-});
+  });
   console.log('weather Summary Array', weatherSummary);
   return weatherSummary;
+}
+
+function getEvents(request, response) {
+  `https://www. eventbriteapi.com/v3/events/search/token=${process.env.EVENTBRITE_API_KEY}&location.address=${request.query.data.formatted_query}`;
+
+  superagent.get(url)
+    .then(result => {
+      const events = result.body.events.map(eventData => {
+        const event = new Event(eventData);
+        return event;
+      });
+
+      response.send(events);
+    })
+    .catch(error => handleError(error, response));
 }
 
 function Location(data) {
@@ -71,10 +86,17 @@ function Location(data) {
 }
 
 function Weather(day) {
-  let time=new Date(day.time*1000);
+  let time = new Date(day.time * 1000);
   // multiply by 1000 to get proper timing
-  this.time=time.toDateString();
-  this.forecast=day.summary;
+  this.time = time.toDateString();
+  this.forecast = day.summary;
+}
+
+function Event(event) {
+  this.link = event.url;
+  this.name = event.name.text;
+  this.event_date = new Date(event.start.local).toString().slice(0, 15);
+  this.summary = event.summary;
 }
 
 
