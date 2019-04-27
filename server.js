@@ -14,6 +14,71 @@ const PORT = process.env.PORT;
 app.get('/location', searchToLatLong);
 app.get('/weather', searchWeather);
 
+
+function searchWeather(query) {
+  const weatherData = require('./data/darksky.json');
+  const weatherSummary = [];
+  weatherData.daily.data.forEach(day => {
+    weatherSummary.push(new Weather(day));
+  });
+  console.log('weather Summary Array', weatherSummary);
+  return weatherSummary;
+}
+
+function getEvents(request, response) {
+  `https://www. eventbriteapi.com/v3/events/search/token=${process.env.EVENTBRITE_API_KEY}&location.address=${request.query.data.formatted_query}`;
+
+  superagent.get(url)
+    .then(result => {
+      const events = result.body.events.map(eventData => {
+        const event = new Event(eventData);
+        return event;
+      });
+
+      response.send(events);
+    })
+    .catch(error => handleError(error, response));
+}
+
+function Location(data) {
+  this.formatted_query = data.results[0].formatted_address;
+  this.latitude = data.results[0].geometry.location.lat;
+  this.longitude = data.results[0].geometry.location.lng;
+}
+
+function Weather(day) {
+  let time = new Date(day.time * 1000);
+  // multiply by 1000 to get proper timing
+  this.time = time.toDateString();
+  this.forecast = day.summary;
+}
+
+function Event(event) {
+  this.link = event.url;
+  this.name = event.name.text;
+  this.event_date = new Date(event.start.local).toString().slice(0, 15);
+  this.summary = event.summary;
+
+app.listen(PORT, () => console.log(`City Explorer is up and running on ${PORT}`));
+
+function Location(query, res) {
+  this.search_query = query;
+  this.formatted_query = res.body.results[0].formatted_address;
+  this.latitude = res.body.results[0].geometry.location.lat;
+  this.longitude = res.body.results[0].geometry.location.lng;
+}
+
+function Weather(day) {
+  this.time = new Date(day.time * 1000).toString().slice(0,15);
+  this.forecast=day.summary;
+
+}
+
+function Reviews(depends) {
+  this.time = new Date(day.time * 1000).toString().slice(0,15);
+  this.yelp=day.summary;
+}
+
 app.listen(PORT, () => console.log(`City Explorer is up and running on ${PORT}`));
 
 function Location(query, res) {
@@ -32,6 +97,7 @@ function Reviews(depends) {
   this.time = new Date(day.time * 1000).toString().slice(0,15);
   this.yelp=day.summary;
 }
+
 
 function searchToLatLong(request, response) {
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${request.query.data}&key=${process.env.GEOCODE_API_KEY}`;
