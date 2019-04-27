@@ -13,64 +13,46 @@ app.use(cors());
 
 const PORT = process.env.PORT;
 
-app.get('/testing', (request, response) => {
-  console.log('found the testing route');
-  response.send('<h1>HELLO WORLD...</h1>');
-});
+//API routes
 
-app.get('/location', (request, response) => {
-  try {
-    const locationData = searchToLatLong(request.query.data);
-    response.send(locationData);
-  }
-  catch (error) {
-    console.error(error);
-    response.status(500).send('Status: 500. So sorry, something went wrong.');
-  }
-});
+app.get('/location', searchToLatLong);
 
-app.get('/weather', (request, response) => {
-  try {
-    const weatherData = searchWeather(request.query.data.latitude);
-    // =searchWeather();
-    response.send(weatherData);
-  }
-  catch (error) {
-    console.log(error);
-    response.status(500).send('Status: 500. Sorry, something went wrong.');
-  }
-  console.log('From weather request', request.query.data.latitude);
-});
+app.get('/weather', getWeather);
 
-app.get('/')
+app.get('/events', getEvents);
 
 app.listen(PORT, () => console.log(`Listening on PORT ${PORT}`));
 
 
-// Helper Functions
+//Helper functions
+
 
 // function to get location data
-function searchToLatLong(query) {
-  const geoData = require('./data/geo.json');
-  const location = new Location(geoData);
-  console.log(location);
-  return location;
+function searchToLatLong(request, response) {
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${request.query.data}&key=${process.env.GEOCODE_API_KEY}`;
+  
+  superagent.get(url)
+  .then(result => {
+    const location = new Location(request.query.data, result);
+    response.send(location);
+  })
 }
 
-function searchWeather(query) {
-  const weatherData = require('./data/darksky.json');
-  const weatherSummary = [];
-  weatherData.daily.data.forEach(day => {
-    weatherSummary.push(new Weather(day));
-  });
-  console.log('weather Summary Array', weatherSummary);
-  return weatherSummary;
+function getWeather(request, response) {
+  const url = `https://api.darksky.net/forecast/${process.env.WEATHER_API_KEY}/${request.query.data.latitude},${request.query.data.longitude}`;
+  
+  superagent.get(url)
+  .then(result => {
+    const weatherSummaries = result.body.daily.data.map(day => new Weather(day));
+    response.send(weatherSummary);
+  })
+  .catch(err => handleError(err, response)); 
 }
 
 function getEvents(request, response) {
-  `https://www.eventbriteapi.com/v3/events/search/token=${process.env.EVENTBRITE_API_KEY}&location.address=${request.query.data.formatted_query}`;
+  const url = `https://www.eventbriteapi.com/v3/events/search/token=${process.env.EVENTBRITE_API_KEY}&location.address=${request.query.data.formatted_query}`;
 
-  superagent.get(url)
+  superagent.get(event.url)
     .then(result => {
       const events = result.body.events.map(eventData => {
         const event = new Event(eventData);
@@ -175,3 +157,39 @@ function Event(event) {
 
 
 
+{
+  //   try {
+  //     const locationData = searchToLatLong(request.query.data);
+  //     response.send(locationData);
+  //   }
+  //   catch (error) {
+  //     console.error(error);
+  //     response.status(500).send('Status: 500. So sorry, something went wrong.');
+  //   }
+  // });
+  
+  // app.get('/weather', (request, response) => {
+  //   try {
+  //     const weatherData = searchWeather(request.query.data.latitude);
+  //     // =searchWeather();
+  //     response.send(weatherData);
+  //   }
+  //   catch (error) {
+  //     console.log(error);
+  //     response.status(500).send('Status: 500. Sorry, something went wrong.');
+  //   }
+  //   console.log('From weather request', request.query.data.latitude);
+  // });
+  
+  // app.get('/events', getEvent) => {
+  //   try {
+  //     const eventData = getEvents(request.query.data);
+  //     response.send(eventData);
+  //   }
+  //   catch (error) {
+  //     console.log(error);
+  //     response.status(500).send('Status: 500. Sorry, something went wrong.');
+  //   }
+  // })
+  
+  
