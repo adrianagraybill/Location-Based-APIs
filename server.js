@@ -32,7 +32,7 @@ function searchToLatLong(request, response) {
 
   superagent.get(url)
     .then(result => {
-      const location = new Location(result.body.daily.data, result);
+      const location = new Location(result, request.query.data);
       response.send(location);
     })
     .catch(err => handleError(err, response));
@@ -44,6 +44,7 @@ function getWeather(request, response) {
   superagent.get(url)
     .then(result => {
       const weatherSummaries = result.body.daily.data.map(day => new Weather(day));
+      console.log(weatherSummaries);
       response.send(weatherSummaries);
     })
     .catch(err => handleError(err, response));
@@ -60,10 +61,11 @@ function getEvents(request, response) {
     .catch(error => handleError(error, response));
 }
 
-function Location(data) {
-  this.formatted_query = data.results[0].formatted_address;
-  this.latitude = data.results[0].geometry.location.lat;
-  this.longitude = data.results[0].geometry.location.lng;
+function Location(data, userData) {
+  this.formatted_query = data.body.results[0].formatted_address;
+  this.latitude = data.body.results[0].geometry.location.lat;
+  this.longitude = data.body.results[0].geometry.location.lng;
+  this.query = userData;
 }
 
 function Weather(day) {
