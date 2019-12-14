@@ -1,4 +1,4 @@
-# lab-07-back-end
+# Location Based APIs - Backend
 
 Author: 
 Jonny and Adriana 
